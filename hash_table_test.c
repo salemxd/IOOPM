@@ -38,7 +38,7 @@ void test_lookup()
      {
        CU_ASSERT_FALSE(ioopm_hash_table_lookup(ht, i, &result));
      }
-   //CU_ASSERT_PTR_NULL(ioopm_hash_table_lookup(ht, -1, &result));
+   CU_ASSERT_FALSE(ioopm_hash_table_lookup(ht, -1, &result));
    ioopm_hash_table_destroy(ht);
 }
 void test_remove()

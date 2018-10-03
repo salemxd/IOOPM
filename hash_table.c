@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "hash_table.h"
 #include <stdbool.h>
+#include <string.h>
 
 #define No_Buckets 17
 
@@ -47,7 +48,6 @@ static entry_t *find_previous_entry_for_key(entry_t *entry, int key)
 void ioopm_hash_table_insert(ioopm_hash_table_t *ht, int key, char *value)
 {
   int bucket = abs(key) % No_Buckets;
-  
   entry_t *entry = find_previous_entry_for_key(&ht->buckets[bucket], key);
   entry_t *next = entry->next;
   
@@ -63,7 +63,7 @@ void ioopm_hash_table_insert(ioopm_hash_table_t *ht, int key, char *value)
 
 bool ioopm_hash_table_lookup(ioopm_hash_table_t *ht, int key, char **result)
 {
-  entry_t *tmp = find_previous_entry_for_key(&ht->buckets[key % No_Buckets], key);
+  entry_t *tmp = find_previous_entry_for_key(&ht->buckets[abs(key) % No_Buckets], key);
   entry_t *next = tmp->next;
 
   if (next && next->key == key)
@@ -81,7 +81,7 @@ bool ioopm_hash_table_remove(ioopm_hash_table_t *ht, int key, char **result)
 {
   if(ioopm_hash_table_lookup(ht, key, result))
     {
-      entry_t *pentry = find_previous_entry_for_key(&ht->buckets[key % No_Buckets], key);
+      entry_t *pentry = find_previous_entry_for_key(&ht->buckets[abs(key) % No_Buckets], key);
       *result = pentry->next->value;
       entry_destroy(pentry);
       return true;
@@ -110,6 +110,95 @@ void ioopm_hash_table_destroy(ioopm_hash_table_t *ht)
   free(ht);
 }
 
+int ioopm_hash_table_size(ioopm_hash_table_t *ht)
+{
+  int counter = 0;
+  for(int i = 0; i <= 16; i++)
+    {
+      entry_t *entry = &ht->buckets[i];
+      while(entry->next != NULL)
+	{
+	  counter+=1;
+	  entry = entry->next;
+	}
+    }
+  return counter;
+}
+
+bool ioopm_hash_table_is_empty(ioopm_hash_table_t *ht)
+{
+  return ioopm_hash_table_size(ht) == 0;
+}
+
+void ioopm_hash_table_clear(ioopm_hash_table_t *ht)
+{
+  for(int i = 0; i <= 16; i++)
+    {
+      test_next(ht->buckets[i].next);
+    }
+}
+
+
+int *ioopm_hash_table_keys(ioopm_hash_table_t *ht)
+{
+  int *counter = calloc(ioopm_hash_table_size(ht), sizeof(int));
+  int pekare = 0;
+  
+  for(int i = 0; i <= 16; i++)
+    {
+      entry_t *entry = &ht->buckets[i];
+      while(entry->next != NULL)
+	{
+	  counter[pekare] = entry->next->key;
+	  pekare++;
+	  entry = entry->next;
+	}
+    }
+  return counter;
+}
+
+char **ioopm_hash_table_values(ioopm_hash_table_t *ht)
+{
+  char **counter = calloc(ioopm_hash_table_size(ht), sizeof(char *));
+  int pekare = 0;
+  
+  for(int i = 0; i <= 16; i++)
+    {
+      entry_t *entry = &ht->buckets[i];
+      while(entry->next != NULL)
+	{
+	  counter[pekare] = entry->next->value;
+	  pekare++;
+	  entry = entry->next;
+	}
+    }
+  return counter;
+}
+bool ioopm_hash_table_has_value(ioopm_hash_table_t *ht, char *value)
+{
+  char **list = ioopm_hash_table_values(ht);
+  for(int i = 0; i < ioopm_hash_table_size(ht); i++)
+    {
+      if(strcmp(list[i], value)==0)
+	{
+	  return true;
+	}
+    }
+  return false;
+}
+bool ioopm_hash_table_has_key(ioopm_hash_table_t *ht, int key)
+{
+
+  int *list = ioopm_hash_table_keys(ht);
+  for(int i = 0; i < ioopm_hash_table_size(ht); i++)
+    {
+      if(list[i] == key)
+	{
+	  return true;
+	}
+    }
+  return false;
+}
 
 int main(int argc, char *argv[])
 {
@@ -117,10 +206,12 @@ int main(int argc, char *argv[])
   char *result = NULL;
   
   ioopm_hash_table_insert(ht, 0, "hej");
-  ioopm_hash_table_remove(ht, 0, &result);
-
+  //ioopm_hash_table_remove(ht, 0, &result);
+  printf("%d \n", ioopm_hash_table_size(ht));
+  if(ioopm_hash_table_is_empty(ht))
+    {
+      puts("yass");
+    }
   ioopm_hash_table_destroy(ht);
   return 0;
 }
-
-
