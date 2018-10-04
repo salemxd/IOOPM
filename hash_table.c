@@ -200,18 +200,53 @@ bool ioopm_hash_table_has_key(ioopm_hash_table_t *ht, int key)
   return false;
 }
 
+bool ioopm_hash_table_any(ioopm_hash_table_t *ht, ioopm_apply_function function, void *x)
+{
+  int *numbers = ioopm_hash_table_keys(ht);
+  char **strings = ioopm_hash_table_values(ht);
+  
+  for(int i = 0; i <= ioopm_hash_table_size(ht); i++)
+    {
+      if(function(numbers[i], strings[i], x))
+	{
+	  return true; 
+	}
+    }
+  return false;
+}
+
+void ioopm_hash_table_apply_to_all(ioopm_hash_table_t *ht, ioopm_apply_function function, void *x)
+{
+  for(int i = 0; i <= ioopm_hash_table_size(ht); i++)
+    {
+      entry_t *entry = ht->buckets[i].next;
+      while(entry->next != NULL)
+	{
+	  function(entry->key, entry->value, x);
+	  entry = entry->next;
+	}
+    }
+}
+
+bool ioopm_hash_table_all(ioopm_hash_table_t *ht, ioopm_apply_function function, void *x)
+{
+  int *numbers = ioopm_hash_table_keys(ht);
+  char **strings = ioopm_hash_table_values(ht);
+  
+  for(int i = 0; i <= ioopm_hash_table_size(ht); i++)
+    {
+      if(!function(numbers[i], strings[i], x))
+	{
+	  return false; 
+	}
+    }
+  return true;
+}
+
 int main(int argc, char *argv[])
 {
-  ioopm_hash_table_t *ht = ioopm_hash_table_create();
-  char *result = NULL;
+  //ioopm_hash_table_t *ht = ioopm_hash_table_create();
+  //char *result = NULL;
   
-  ioopm_hash_table_insert(ht, 0, "hej");
-  //ioopm_hash_table_remove(ht, 0, &result);
-  printf("%d \n", ioopm_hash_table_size(ht));
-  if(ioopm_hash_table_is_empty(ht))
-    {
-      puts("yass");
-    }
-  ioopm_hash_table_destroy(ht);
   return 0;
 }

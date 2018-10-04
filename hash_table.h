@@ -18,6 +18,8 @@ struct hash_table
   entry_t buckets[17];
 };
 
+typedef bool(*ioopm_apply_function)(int key, char *value, void *extra);
+
 /// @brief Create a new hash table
 /// @return A new empty hash table
 ioopm_hash_table_t *ioopm_hash_table_create();
