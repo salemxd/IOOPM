@@ -1,20 +1,20 @@
 #pragma once
-  
-#ifndef __HASH_TABLE_H__
-#define __HASH_TABLE_H__
+#include <stdbool.h>
+#include "linked_list.h"
 
 typedef struct entry entry_t;
 typedef struct hash_table ioopm_hash_table_t;
-#include <stdbool.h>
 struct entry
+
 {
-  int key;       // holds the key
+  int key;	// holds the key
   char *value;   // holds the value
   entry_t *next; // points to the next entry (possibly NULL)
 };
 
 struct hash_table
 {
+  int ht_size;  //holds the size of the hash table
   entry_t buckets[17];
 };
 
@@ -44,13 +44,10 @@ bool ioopm_hash_table_remove(ioopm_hash_table_t *ht, int key, char **result);
 
 void ioopm_hash_table_destroy(ioopm_hash_table_t *ht);
 
-
-
-
 /// @brief returns the number of key => value entries in the hash table
 /// @param h hash table operated upon
 /// @return the number of key => value entries in the hash table
-//size_t ioopm_hash_table_size(ioopm_hash_table_t *h);
+int ioopm_hash_table_size(ioopm_hash_table_t *h);
 
 /// @brief checks if the hash table is empty
 /// @param h hash table operated upon
@@ -64,7 +61,7 @@ void ioopm_hash_table_clear(ioopm_hash_table_t *h);
 /// @brief return the keys for all entries in a hash map (in no particular order, but same as ioopm_hash_table_values)
 /// @param h hash table operated upon
 /// @return an array of keys for hash table h
-int *ioopm_hash_table_keys(ioopm_hash_table_t *h);
+ioopm_list_t *ioopm_hash_table_keys(ioopm_hash_table_t *h);
 
 /// @brief return the values for all entries in a hash map (in no particular order, but same as ioopm_hash_table_keys)
 /// @param h hash table operated upon
@@ -85,18 +82,17 @@ bool ioopm_hash_table_has_value(ioopm_hash_table_t *h, char *value);
 /// @param h hash table operated upon
 /// @param pred the predicate 
 /// @param arg extra argument to pred
-//bool ioopm_hash_table_all(ioopm_hash_table_t *h, ioopm_apply_function pred, void *arg);
+bool ioopm_hash_table_all(ioopm_hash_table_t *h, ioopm_apply_function pred, void *arg);
 
 /// @brief check if a predicate is satisfied by any entry in a hash table
 /// @param h hash table operated upon
 /// @param pred the predicate 
 /// @param arg extra argument to pred
-//bool ioopm_hash_table_any(ioopm_hash_table_t *h, ioopm_apply_function pred, void *arg);
+bool ioopm_hash_table_any(ioopm_hash_table_t *h, ioopm_apply_function pred, void *arg);
 
 /// @brief apply a function to all entries in a hash table
 /// @param h hash table operated upon
 /// @param apply_fun the function to be applied to all elements
 /// @param arg extra argument to apply_fun
-//void ioopm_hash_table_apply_to_all(ioopm_hash_table_t *h, ioopm_apply_function apply_fun, void *arg);
+void ioopm_hash_table_apply_to_all(ioopm_hash_table_t *h, ioopm_apply_function apply_fun, void *arg);
 
-#endif
