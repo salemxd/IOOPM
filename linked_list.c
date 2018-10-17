@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "linked_list.h"
+#include "common.h"
 #include <stdbool.h>
 #include <string.h>
 
@@ -14,6 +15,7 @@ struct list
 {
   link_t *first;
   link_t *last;
+  cmpfunc cfunc;
 };
 
 struct iter
@@ -22,8 +24,8 @@ struct iter
   ioopm_list_t *list;
 };
 
-typedef bool (*func)(int, int);
-typedef void (*fun)(int *, int *);
+typedef bool (*func)(elem_t, elem_t);
+typedef void (*fun)(elem_t, elem_t);
 
 ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list)
 {
@@ -38,7 +40,7 @@ bool ioopm_iterator_has_next(ioopm_list_iterator_t *iter)
   return iter->current->next != NULL; 
 }
 
-int ioopm_iterator_current(ioopm_list_iterator_t *iter)
+elem_t ioopm_iterator_current(ioopm_list_iterator_t *iter)
 {
   return iter->current->next->element;
 }
@@ -94,7 +96,7 @@ link_t *link_new(elem_t element, link_t *next)
   return result;
 }
 
-void ioopm_iterator_insert(ioopm_list_iterator_t *iter, int element)
+void ioopm_iterator_insert(ioopm_list_iterator_t *iter, elem_t element)
 {
   link_t *temp = iter->current->next;
   link_t *link =link_new(element, temp);
@@ -169,7 +171,7 @@ elem_t ioopm_linked_list_remove(ioopm_list_t *list, int index)
   return result;
 }
 
-int ioopm_linked_list_get(ioopm_list_t *list, int index)
+elem_t ioopm_linked_list_get(ioopm_list_t *list, int index)
 {
   link_t *link = find_previous(list, index);
   return link->next->element;
@@ -196,7 +198,7 @@ bool ioopm_linked_list_contains(ioopm_list_t *list, elem_t element)
   link_t *link = list->first->next;
   for(int i = 0; i < ioopm_linked_list_size(list); i++)
     {
-      if(link->element == element)
+      if(list->cfunc(link->element, element))
 	{
 	  return true;
 	}
@@ -236,7 +238,7 @@ bool ioopm_linked_list_all(ioopm_list_t *list, func function, void *x)
   
   for(int i = 0; i < ioopm_linked_list_size(list); i++)
     {
-      if(!function(link->element, *((int*) x)))
+      if(!function(link->element, *((elem_t *) x)))
 	{
 	  return false;
 	}
@@ -251,7 +253,7 @@ bool ioopm_linked_list_any(ioopm_list_t *list, func function, void *x)
   
   for(int i = 0; i < ioopm_linked_list_size(list); i++)
     {
-      if(function(link->element, *((int*) x)))
+      if(function(link->element, *((elem_t*) x)))
 	{
 	  return true;
 	}
@@ -266,10 +268,11 @@ void ioopm_linked_apply_to_all(ioopm_list_t *list, fun function, void *x)
   
   for(int i = 0; i < ioopm_linked_list_size(list); i++)
     {
-      function(&(link->element), (int*) x);
+      function((link->element), (elem_t) x);
       link = link->next;
     }
 }
+
 
 /*
 int main(int argc, char *argv[])
