@@ -21,24 +21,26 @@ void entry_destroy(entry_t *entry)
   free(entry);
 }
 
-ioopm_hash_table_t *ioopm_hash_table_create(hash_func func1, cmpfunc func2, cmpfunc func3)
+ioopm_hash_table_t *ioopm_hash_table_create(hash_func func1, cmpfunc func2)
 {
-  ioopm_hash_table_t *result = calloc(1, sizeof(ioopm_hash_table_t));
-  return result;
+ ioopm_hash_table_t *result = calloc(1, sizeof(ioopm_hash_table_t));
+ result->hfunc = func1;
+ result->cfunc = func2;
+ return result;
 }
 
 static entry_t *find_previous_entry_for_key(ioopm_hash_table_t *ht, entry_t *entry, elem_t key)
 {
   entry_t *cursor = entry;
-  entry_t *store = NULL;
+//  entry_t *store = NULL;
 
-  while(cursor != NULL)
+  while(cursor->next != NULL)
     {
       if(ht->cfunc(cursor->key, key))
 	{
-	  return store;
+	  return cursor;
 	}
-      store = cursor;
+      //store = cursor;
       cursor = cursor->next;
     }
   return entry;
@@ -64,17 +66,17 @@ void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value)
 bool ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key, elem_t *result)
 {
   entry_t *tmp = find_previous_entry_for_key(ht,&ht->buckets[abs(ht->hfunc(key)) % No_Buckets], key);
-  entry_t *next = tmp->next;
-
-  if (next && ht->cfunc(next->key, key))
-    {
-      *result = next->value;
-      return true;
-    }
-  else
-    {
-      return false;
-    }
+	entry_t *next = tmp->next;
+	
+  	if (next && ht->cfunc(next->key, key))
+    	{
+      	*result = next->value;
+      	return true;
+    	}
+  	else
+    	{
+      	return false;
+    	}
 }
 
 bool ioopm_hash_table_remove(ioopm_hash_table_t *ht, elem_t key, elem_t *result)
@@ -138,13 +140,14 @@ bool ioopm_hash_table_is_empty(ioopm_hash_table_t *ht)
 
 ioopm_list_t *ioopm_hash_table_keys(ioopm_hash_table_t *ht)
 {
-  ioopm_list_t *list = ioopm_linked_list_create();
+  ioopm_list_t *list = ioopm_linked_list_create(NULL);
   for(int i = 0; i <= 16; i++)
     {
       entry_t *entry = &ht->buckets[i];
       while(entry->next)
 	{
 	  ioopm_linked_list_append(list, entry->next->key);
+	  entry = entry->next;
 	}
     }
   return list;
@@ -167,6 +170,7 @@ elem_t *ioopm_hash_table_values(ioopm_hash_table_t *ht)
     }
   return counter;
 }
+
 bool ioopm_hash_table_has_value(ioopm_hash_table_t *ht, elem_t value)
 {
   elem_t *list = ioopm_hash_table_values(ht);
@@ -184,16 +188,20 @@ bool ioopm_hash_table_has_key(ioopm_hash_table_t *ht, elem_t key)
 
   ioopm_list_t *list = ioopm_hash_table_keys(ht);
   ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
+  
   for(int i = 0; i < ioopm_hash_table_size(ht); i++)
     {
       elem_t hej = ioopm_iterator_current(iterator);
       if(ht->cfunc(hej, key))
 	{
+	  ioopm_linked_list_destroy(list);
+	  ioopm_iterator_destroy(iterator);
 	  return true;
 	}
-
       ioopm_iterator_next(iterator, NULL);
     }
+  ioopm_linked_list_destroy(list);
+  ioopm_iterator_destroy(iterator);
   return false;
 }
 
@@ -207,21 +215,27 @@ bool ioopm_hash_table_any(ioopm_hash_table_t *ht, ioopm_apply_function function,
     {
       if(function(ioopm_iterator_current(iterator), strings[i], x))
 	{
+	  ioopm_linked_list_destroy(list);
+	  ioopm_iterator_destroy(iterator);
+	  free(strings);
 	  return true; 
 	}
       ioopm_iterator_next(iterator, NULL);
     }
+  ioopm_linked_list_destroy(list);
+  ioopm_iterator_destroy(iterator);
+  free(strings);
   return false;
 }
 
-void ioopm_hash_table_apply_to_all(ioopm_hash_table_t *ht, ioopm_apply_function function, void *x)
+void ioopm_hash_table_apply_to_all(ioopm_hash_table_t *ht, changestuff function, void *x)
 {
-  for(int i = 0; i <= ioopm_hash_table_size(ht); i++)
+  for(int i = 0; i <= 16; i++)
     {
       entry_t *entry = ht->buckets[i].next;
-      while(entry->next != NULL)
+      while(entry != NULL)
 	{
-	  function(entry->key, entry->value, x);
+	  function(&(entry->key), &(entry->value), x);
 	  entry = entry->next;
 	}
     }
@@ -235,18 +249,40 @@ bool ioopm_hash_table_all(ioopm_hash_table_t *ht, ioopm_apply_function function,
 
   for(int i = 0; i <= ioopm_hash_table_size(ht); i++)
     {
-      if(!function(ioopm_iterator_current(iterator), values[i], x))
+      if(function(ioopm_iterator_current(iterator), values[i], x))
 	{
+	  ioopm_linked_list_destroy(list);
+	  ioopm_iterator_destroy(iterator);
+	  free(values);
 	  return false; 
 	}
       ioopm_iterator_next(iterator, NULL);
     }
+  ioopm_linked_list_destroy(list);
+  ioopm_iterator_destroy(iterator);
+  free(values);
   return true;
 }
 
+/*
+int hashtest(elem_t x)
+{
+	return x.i;
+}
+
+bool compare(elem_t a, elem_t b)
+{
+	if (a.i == b.i)
+	{
+		return true;
+	}
+	return false;
+}
+
+
 int main(int argc, char *argv[])
-{ 
-  
+{
   return 0;
 }
+*/
 

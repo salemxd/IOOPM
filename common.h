@@ -5,12 +5,14 @@ typedef union elem elem_t;
 
 union elem
 {
-  int i;
-  unsigned int u;
-  bool b;
-  float f;
-  void *p;
+		int i;
+		unsigned int u;
+		bool b;
+		float f;
+		void *p;
+		char *s;
 };
 
 typedef int(*hash_func)(elem_t key);
 typedef bool(*cmpfunc)(elem_t a, elem_t b);
+typedef struct link link_t;

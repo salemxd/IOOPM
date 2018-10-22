@@ -5,8 +5,8 @@
 
 typedef struct entry entry_t;
 typedef struct hash_table ioopm_hash_table_t;
-struct entry
 
+struct entry
 {
   elem_t key;	// holds the key
   elem_t value;   // holds the value
@@ -22,10 +22,12 @@ struct hash_table
 };
 
 typedef bool(*ioopm_apply_function)(elem_t key, elem_t value, void *extra);
-
+typedef void(*changestuff)(elem_t *a, elem_t *b, void *extra);
 /// @brief Create a new hash table
-/// @return A new empty hash table
-ioopm_hash_table_t *ioopm_hash_table_create();
+/// @return A new empty hash tabl
+
+ioopm_hash_table_t *ioopm_hash_table_create(hash_func func1, cmpfunc func2);
+
 
 /// @brief add key => value entry in hash table ht
 /// @param ht hash table operated upon
@@ -97,5 +99,6 @@ bool ioopm_hash_table_any(ioopm_hash_table_t *h, ioopm_apply_function pred, void
 /// @param h hash table operated upon
 /// @param apply_fun the function to be applied to all elements
 /// @param arg extra argument to apply_fun
-void ioopm_hash_table_apply_to_all(ioopm_hash_table_t *h, ioopm_apply_function apply_fun, void *arg);
+void ioopm_hash_table_apply_to_all(ioopm_hash_table_t *h, changestuff apply_fun, void *arg);
+
 

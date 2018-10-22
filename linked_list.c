@@ -25,7 +25,7 @@ struct iter
 };
 
 typedef bool (*func)(elem_t, elem_t);
-typedef void (*fun)(elem_t, elem_t);
+typedef void (*fun)(elem_t *, elem_t);
 
 ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list)
 {
@@ -59,6 +59,7 @@ bool ioopm_iterator_next(ioopm_list_iterator_t *iter, elem_t *content)
 void ioopm_iterator_destroy(ioopm_list_iterator_t *iter)
 {
   free(iter);
+  
 }
 
 void ioopm_iterator_reset(ioopm_list_iterator_t *iter)
@@ -85,7 +86,7 @@ bool ioopm_iterator_remove(ioopm_list_iterator_t *iter, elem_t *content)
 
 link_t *link_new(elem_t element, link_t *next)
 {
-  link_t *result = malloc(sizeof(struct link));
+  link_t *result = malloc(sizeof(link_t));
 
   if (result)
     {
@@ -109,19 +110,16 @@ void ioopm_iterator_insert(ioopm_list_iterator_t *iter, elem_t element)
     }
 }
 
-ioopm_list_t *ioopm_linked_list_create()
+ioopm_list_t *ioopm_linked_list_create(cmpfunc cfunc)
 {
   ioopm_list_t *list = calloc(1, sizeof(ioopm_list_t));
   link_t *link = calloc(1, sizeof(link_t));
   list->first = link;
   list->last = link;
+  list->cfunc = cfunc;
   return list;
 }
 
-void ioopm_linked_list_destroy(ioopm_list_t *list)
-{
-  free(list);
-}
 
 void ioopm_linked_list_append(ioopm_list_t *list, elem_t element)
 {
@@ -154,7 +152,7 @@ void ioopm_linked_list_insert(ioopm_list_t *list, int index, elem_t element)
   if(link->next == NULL)
     {
       list->last = insert;
-    }
+    } 
 }
 
 elem_t ioopm_linked_list_remove(ioopm_list_t *list, int index)
@@ -186,6 +184,7 @@ int ioopm_linked_list_size(ioopm_list_t *list)
       counter++;
       link = link->next;
     }
+  //free(link);
   return counter;
 }
 
@@ -211,9 +210,9 @@ bool ioopm_linked_list_is_empty(ioopm_list_t *list)
 {
   if(ioopm_linked_list_size(list) == 0)
     {
-      return false;
+      return true ;
     }
-  return true;
+  return false;
 }
 
 void testnext(link_t *link)
@@ -224,21 +223,31 @@ void testnext(link_t *link)
     }
   free(link);
 }
+
 void ioopm_linked_list_clear(ioopm_list_t *list)
 {
   if(!ioopm_linked_list_is_empty(list))
     {
       testnext(list->first->next);
     }
+  list->first->next = NULL;
+  list->last = list->first;
 }
 
-bool ioopm_linked_list_all(ioopm_list_t *list, func function, void *x)
+void ioopm_linked_list_destroy(ioopm_list_t *list)
+{
+  ioopm_linked_list_clear(list);
+  free(list->first);
+  free(list);
+}
+
+bool ioopm_linked_list_all(ioopm_list_t *list, func function, elem_t x)
 {
   link_t *link = list->first->next;
   
   for(int i = 0; i < ioopm_linked_list_size(list); i++)
     {
-      if(!function(link->element, *((elem_t *) x)))
+      if(!function(link->element, x))
 	{
 	  return false;
 	}
@@ -247,13 +256,16 @@ bool ioopm_linked_list_all(ioopm_list_t *list, func function, void *x)
   return true;
 }
 
-bool ioopm_linked_list_any(ioopm_list_t *list, func function, void *x)
+bool ioopm_linked_list_any(ioopm_list_t *list, func function, elem_t x)
 {
   link_t *link = list->first->next;
-  
+  if(link == NULL)
+  {
+  	return false;
+  }
   for(int i = 0; i < ioopm_linked_list_size(list); i++)
     {
-      if(function(link->element, *((elem_t*) x)))
+      	if(function(link->element, x))
 	{
 	  return true;
 	}
@@ -262,24 +274,16 @@ bool ioopm_linked_list_any(ioopm_list_t *list, func function, void *x)
   return false;
 }
 
-void ioopm_linked_apply_to_all(ioopm_list_t *list, fun function, void *x)
+void ioopm_linked_apply_to_all(ioopm_list_t *list, fun function, elem_t x)
 {
   link_t *link = list->first->next;
   
   for(int i = 0; i < ioopm_linked_list_size(list); i++)
     {
-      function((link->element), (elem_t) x);
+      function(&(link->element), x);
       link = link->next;
     }
 }
 
 
-/*
-int main(int argc, char *argv[])
-{
-  ioopm_list_t *list = ioopm_linked_list_create();
-  ioopm_list_iterator_t *iterator = ioopm_list_iterator(list);
-  //ioopm_iterator_next(iterator);
-  return 0;
-}
-*/
+
