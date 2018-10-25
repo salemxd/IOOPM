@@ -2,13 +2,15 @@
 
 #include <stdbool.h>
 #include "common.h"
+
+/// @brief A link for linked_list
 typedef struct link link_t;
+
+/// @brief A list with links
 typedef struct list ioopm_list_t;
 
-//////////////////////////////////////////////////////////////////
+// /@brief an iterator. 
 typedef struct iter ioopm_list_iterator_t;
-
-typedef struct existance exist_t;
 
 /// @brief Create an iterator for a given list
 /// @param the list to be iterated over
@@ -17,17 +19,18 @@ ioopm_list_iterator_t *ioopm_list_iterator(ioopm_list_t *list);
 
 /// @brief Checks if there are more elements to iterate over
 /// @param iter the iterator
-/// @return true if
+/// @return true if there is a next link
 bool ioopm_iterator_has_next(ioopm_list_iterator_t *iter);
 
-/// @brief Step the iterator forward one ste
-/// @param iter the iterator
-/// @return the next element
+/// @brief Step the iterator forward one step.
+/// @param iter the iterator.
+/// @param content. stores the next value in content.
+/// @return true if there is a next element.
 bool ioopm_iterator_next(ioopm_list_iterator_t *iter, elem_t *content);
 
 /// @brief Remove the current element from the underlying list
 /// @param iter the iterator
-/// @return the removed element
+/// @return true if there is a iterator to be removed.
 bool ioopm_iterator_remove(ioopm_list_iterator_t *iter, elem_t *content);
 
 /// @brief Insert a new element into the underlying list making the current element it's next
@@ -48,10 +51,8 @@ elem_t ioopm_iterator_current(ioopm_list_iterator_t *iter);
 /// @param iter the iterator
 void ioopm_iterator_destroy(ioopm_list_iterator_t *iter);
 
-////////////////////////////////////////////////////////////////////
-
-/// FIXME: better comments here
 /// @brief Creates a new empty list
+// @param cfunc is a function to tell how to compare the elements in a list.
 /// @return an empty linked list
 ioopm_list_t *ioopm_linked_list_create(cmpfunc cfunc);
 

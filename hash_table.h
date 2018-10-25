@@ -8,9 +8,9 @@ typedef struct hash_table ioopm_hash_table_t;
 
 struct entry
 {
-  elem_t key;	// holds the key
-  elem_t value;   // holds the value
-  entry_t *next; // points to the next entry (possibly NULL)
+  elem_t key;
+  elem_t value;
+  entry_t *next; 
 };
 
 struct hash_table
@@ -23,6 +23,8 @@ struct hash_table
 
 typedef bool(*ioopm_apply_function)(elem_t key, elem_t value, void *extra);
 typedef void(*changestuff)(elem_t *a, elem_t *b, void *extra);
+
+
 /// @brief Create a new hash table
 /// @return A new empty hash tabl
 
@@ -35,18 +37,21 @@ ioopm_hash_table_t *ioopm_hash_table_create(hash_func func1, cmpfunc func2);
 /// @param value value to insert
 void ioopm_hash_table_insert(ioopm_hash_table_t *ht, elem_t key, elem_t value);
 
-/// @brief lookup value for key in hash table ht
+/// @brief lookup value for key in hash table ht and stores it in *result
 /// @param ht hash table operated upon
 /// @param key key to lookup
-/// @return the value mapped to by key (FIXME: incomplete)
+/// @returns true if key exists otherwise false
 bool ioopm_hash_table_lookup(ioopm_hash_table_t *ht, elem_t key, elem_t *result);
 
 /// @brief remove any mapping from key to a value
 /// @param ht hash table operated upon
 /// @param key key to remove
-/// @return the value mapped to by key (FIXME: incomplete)
+/// @return the value mapped to by key
 bool ioopm_hash_table_remove(ioopm_hash_table_t *ht, elem_t key, elem_t *result);
 
+
+/// @brief destroys a hash_table
+/// @param ht hash table operated upon
 void ioopm_hash_table_destroy(ioopm_hash_table_t *ht);
 
 /// @brief returns the number of key => value entries in the hash table
